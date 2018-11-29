@@ -124,6 +124,8 @@ struct switchtec_ntb {
 	enum ntb_speed link_speed;
 	enum ntb_width link_width;
 	struct work_struct link_reinit_work;
+
+	bool force_link_done;
 };
 
 static struct switchtec_ntb *ntb_sndev(struct ntb_dev *ntb)
@@ -532,7 +534,10 @@ static void link_reinit_work(struct work_struct *work)
 	struct switchtec_ntb *sndev;
 
 	sndev = container_of(work, struct switchtec_ntb, link_reinit_work);
+	dev_dbg(&sndev->stdev->dev, "%s, fld: %d\n", __func__, sndev->force_link_done);
 	switchtec_ntb_reinit_peer(sndev);
+	sndev->force_link_done = 1;
+	dev_dbg(&sndev->stdev->dev, "%s, fld: %d\n", __func__, sndev->force_link_done);
 }
 
 static void switchtec_ntb_check_link(struct switchtec_ntb *sndev,
@@ -540,8 +545,10 @@ static void switchtec_ntb_check_link(struct switchtec_ntb *sndev,
 {
 	int link_sta;
 	int old = sndev->link_is_up;
+	dev_dbg(&sndev->stdev->dev, "%s, fld: %d\n", __func__, sndev->force_link_done);
 
 	if (msg == MSG_LINK_FORCE_DOWN) {
+		sndev->force_link_done = 0;
 		schedule_work(&sndev->link_reinit_work);
 
 		if (sndev->link_is_up) {
@@ -550,6 +557,7 @@ static void switchtec_ntb_check_link(struct switchtec_ntb *sndev,
 			dev_info(&sndev->stdev->dev, "ntb link forced down\n");
 		}
 
+	dev_dbg(&sndev->stdev->dev, "%s, fld: %d\n", __func__, sndev->force_link_done);
 		return;
 	}
 
@@ -575,6 +583,7 @@ static void switchtec_ntb_check_link(struct switchtec_ntb *sndev,
 		if (link_sta)
 			crosslink_init_dbmsgs(sndev);
 	}
+	dev_dbg(&sndev->stdev->dev, "%s, fld: %d\n", __func__, sndev->force_link_done);
 }
 
 static void switchtec_ntb_link_notification(struct switchtec_dev *stdev)
@@ -589,14 +598,14 @@ static u64 switchtec_ntb_link_is_up(struct ntb_dev *ntb,
 				    enum ntb_width *width)
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
-	dev_dbg(&sndev->stdev->dev, "%s, link is (%s)\n", __func__, sndev->link_is_up ? "up" : "down");
+	dev_dbg(&sndev->stdev->dev, "%s, link is (%s)\n", __func__, sndev->link_is_up  && sndev->force_link_done ? "up" : "down");
 
 	if (speed)
 		*speed = sndev->link_speed;
 	if (width)
 		*width = sndev->link_width;
 
-	return sndev->link_is_up;
+	return sndev->link_is_up && sndev->force_link_done;
 }
 
 static int switchtec_ntb_link_enable(struct ntb_dev *ntb,
