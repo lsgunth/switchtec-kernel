@@ -205,6 +205,7 @@ static int switchtec_ntb_mw_count(struct ntb_dev *ntb, int pidx)
 	int nr_direct_mw = sndev->peer_nr_direct_mw;
 	int nr_lut_mw = sndev->peer_nr_lut_mw - sndev->nr_rsvd_luts;
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	if (pidx != NTB_DEF_PEER_IDX)
 		return -EINVAL;
 
@@ -232,6 +233,7 @@ static int switchtec_ntb_mw_get_align(struct ntb_dev *ntb, int pidx,
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 	int lut;
 	resource_size_t size;
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 
 	if (pidx != NTB_DEF_PEER_IDX)
 		return -EINVAL;
@@ -312,6 +314,7 @@ static int switchtec_ntb_mw_set_trans(struct ntb_dev *ntb, int pidx, int widx,
 	int nr_direct_mw = sndev->peer_nr_direct_mw;
 	int rc;
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	if (pidx != NTB_DEF_PEER_IDX)
 		return -EINVAL;
 
@@ -379,6 +382,7 @@ static int switchtec_ntb_peer_mw_count(struct ntb_dev *ntb)
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 	int nr_lut_mw = sndev->nr_lut_mw - sndev->nr_rsvd_luts;
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	return sndev->nr_direct_mw + (use_lut_mws ? nr_lut_mw : 0);
 }
 
@@ -440,6 +444,7 @@ static int switchtec_ntb_peer_mw_get_addr(struct ntb_dev *ntb, int idx,
 					  resource_size_t *size)
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 
 	if (idx < sndev->nr_direct_mw)
 		return switchtec_ntb_direct_get_addr(sndev, idx, base, size);
@@ -584,6 +589,7 @@ static u64 switchtec_ntb_link_is_up(struct ntb_dev *ntb,
 				    enum ntb_width *width)
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 
 	if (speed)
 		*speed = sndev->link_speed;
@@ -598,6 +604,7 @@ static int switchtec_ntb_link_enable(struct ntb_dev *ntb,
 				     enum ntb_width max_width)
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 
 	dev_dbg(&sndev->stdev->dev, "enabling link\n");
 
@@ -613,6 +620,7 @@ static int switchtec_ntb_link_disable(struct ntb_dev *ntb)
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	dev_dbg(&sndev->stdev->dev, "disabling link\n");
 
 	sndev->self_shared->link_sta = 0;
@@ -626,12 +634,15 @@ static int switchtec_ntb_link_disable(struct ntb_dev *ntb)
 static u64 switchtec_ntb_db_valid_mask(struct ntb_dev *ntb)
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 
 	return sndev->db_valid_mask;
 }
 
 static int switchtec_ntb_db_vector_count(struct ntb_dev *ntb)
 {
+	struct switchtec_ntb *sndev = ntb_sndev(ntb);
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	return 1;
 }
 
@@ -639,6 +650,7 @@ static u64 switchtec_ntb_db_vector_mask(struct ntb_dev *ntb, int db_vector)
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	if (db_vector < 0 || db_vector > 1)
 		return 0;
 
@@ -650,6 +662,7 @@ static u64 switchtec_ntb_db_read(struct ntb_dev *ntb)
 	u64 ret;
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	ret = ioread64(&sndev->mmio_self_dbmsg->idb) >> sndev->db_shift;
 
 	return ret & sndev->db_valid_mask;
@@ -659,6 +672,7 @@ static int switchtec_ntb_db_clear(struct ntb_dev *ntb, u64 db_bits)
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	iowrite64(db_bits << sndev->db_shift, &sndev->mmio_self_dbmsg->idb);
 
 	return 0;
@@ -669,6 +683,7 @@ static int switchtec_ntb_db_set_mask(struct ntb_dev *ntb, u64 db_bits)
 	unsigned long irqflags;
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	if (db_bits & ~sndev->db_valid_mask)
 		return -EINVAL;
 
@@ -687,6 +702,7 @@ static int switchtec_ntb_db_clear_mask(struct ntb_dev *ntb, u64 db_bits)
 	unsigned long irqflags;
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	if (db_bits & ~sndev->db_valid_mask)
 		return -EINVAL;
 
@@ -704,6 +720,7 @@ static u64 switchtec_ntb_db_read_mask(struct ntb_dev *ntb)
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	return (sndev->db_mask >> sndev->db_shift) & sndev->db_valid_mask;
 }
 
@@ -714,6 +731,7 @@ static int switchtec_ntb_peer_db_addr(struct ntb_dev *ntb,
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 	unsigned long offset;
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	offset = (unsigned long)sndev->mmio_peer_dbmsg->odb -
 		(unsigned long)sndev->stdev->mmio;
 
@@ -731,6 +749,7 @@ static int switchtec_ntb_peer_db_set(struct ntb_dev *ntb, u64 db_bits)
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	iowrite64(db_bits << sndev->db_peer_shift,
 		  &sndev->mmio_peer_dbmsg->odb);
 
@@ -741,6 +760,7 @@ static int switchtec_ntb_spad_count(struct ntb_dev *ntb)
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	return ARRAY_SIZE(sndev->self_shared->spad);
 }
 
@@ -748,6 +768,7 @@ static u32 switchtec_ntb_spad_read(struct ntb_dev *ntb, int idx)
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	if (idx < 0 || idx >= ARRAY_SIZE(sndev->self_shared->spad))
 		return 0;
 
@@ -761,6 +782,7 @@ static int switchtec_ntb_spad_write(struct ntb_dev *ntb, int idx, u32 val)
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	if (idx < 0 || idx >= ARRAY_SIZE(sndev->self_shared->spad))
 		return -EINVAL;
 
@@ -777,6 +799,7 @@ static u32 switchtec_ntb_peer_spad_read(struct ntb_dev *ntb, int pidx,
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	if (pidx != NTB_DEF_PEER_IDX)
 		return -EINVAL;
 
@@ -794,6 +817,7 @@ static int switchtec_ntb_peer_spad_write(struct ntb_dev *ntb, int pidx,
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	if (pidx != NTB_DEF_PEER_IDX)
 		return -EINVAL;
 
@@ -814,6 +838,7 @@ static int switchtec_ntb_peer_spad_addr(struct ntb_dev *ntb, int pidx,
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
 	unsigned long offset;
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	if (pidx != NTB_DEF_PEER_IDX)
 		return -EINVAL;
 
