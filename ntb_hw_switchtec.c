@@ -589,7 +589,7 @@ static u64 switchtec_ntb_link_is_up(struct ntb_dev *ntb,
 				    enum ntb_width *width)
 {
 	struct switchtec_ntb *sndev = ntb_sndev(ntb);
-	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
+	dev_dbg(&sndev->stdev->dev, "%s, link is (%s)\n", __func__, sndev->link_is_up ? "up" : "down");
 
 	if (speed)
 		*speed = sndev->link_speed;
@@ -884,6 +884,7 @@ static int switchtec_ntb_init_sndev(struct switchtec_ntb *sndev)
 	int self;
 	u64 part_map;
 	int bit;
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 
 	sndev->ntb.pdev = sndev->stdev->pdev;
 	sndev->ntb.topo = NTB_TOPO_SWITCH;
@@ -956,6 +957,7 @@ static int config_rsvd_lut_win(struct switchtec_ntb *sndev,
 	int peer_bar = sndev->peer_direct_mw_to_bar[0];
 	u32 ctl_val;
 	int rc;
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 
 	rc = switchtec_ntb_part_op(sndev, ctl, NTB_CTRL_PART_OP_LOCK,
 				   NTB_CTRL_PART_STATUS_LOCKED);
@@ -995,6 +997,7 @@ static int config_req_id_table(struct switchtec_ntb *sndev,
 	int i, rc = 0;
 	u32 error;
 	u32 proxy_id;
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 
 	if (ioread32(&mmio_ctrl->req_id_table_size) < count) {
 		dev_err(&sndev->stdev->dev,
@@ -1047,6 +1050,7 @@ static int crosslink_setup_mws(struct switchtec_ntb *sndev, int ntb_lut_idx,
 	int bar;
 	int xlate_pos;
 	u32 ctl_val;
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 
 	rc = switchtec_ntb_part_op(sndev, ctl, NTB_CTRL_PART_OP_LOCK,
 				   NTB_CTRL_PART_STATUS_LOCKED);
@@ -1109,6 +1113,7 @@ static int crosslink_setup_req_ids(struct switchtec_ntb *sndev,
 	int req_ids[16];
 	int i;
 	u32 proxy_id;
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 
 	for (i = 0; i < ARRAY_SIZE(req_ids); i++) {
 		proxy_id = ioread32(&sndev->mmio_self_ctrl->req_id_table[i]);
@@ -1139,6 +1144,7 @@ static int crosslink_enum_partition(struct switchtec_ntb *sndev,
 	u64 bar_addr;
 	int bar_cnt = 0;
 	int i;
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 
 	iowrite16(0x6, &mmio_pff->pcicmd);
 
@@ -1221,6 +1227,7 @@ static int switchtec_ntb_init_crosslink(struct switchtec_ntb *sndev)
 
 static void switchtec_ntb_deinit_crosslink(struct switchtec_ntb *sndev)
 {
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	if (sndev->mmio_xlink_win)
 		pci_iounmap(sndev->stdev->pdev, sndev->mmio_xlink_win);
 }
@@ -1242,6 +1249,7 @@ static int map_bars(int *map, struct ntb_ctrl_regs __iomem *ctrl)
 
 static void switchtec_ntb_init_mw(struct switchtec_ntb *sndev)
 {
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	sndev->nr_direct_mw = map_bars(sndev->direct_mw_to_bar,
 				       sndev->mmio_self_ctrl);
 
@@ -1275,6 +1283,7 @@ static void switchtec_ntb_init_mw(struct switchtec_ntb *sndev)
  */
 static void switchtec_ntb_init_db(struct switchtec_ntb *sndev)
 {
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	sndev->db_mask = 0x0FFFFFFFFFFFFFFFULL;
 
 	if (sndev->mmio_peer_dbmsg != sndev->mmio_self_dbmsg) {
@@ -1304,6 +1313,7 @@ static void switchtec_ntb_init_msgs(struct switchtec_ntb *sndev)
 	int i;
 	u32 msg_map = 0;
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	for (i = 0; i < ARRAY_SIZE(sndev->mmio_self_dbmsg->imsg); i++) {
 		int m = i | sndev->peer_partition << 2;
 
@@ -1322,6 +1332,7 @@ switchtec_ntb_init_req_id_table(struct switchtec_ntb *sndev)
 {
 	int req_ids[2];
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	/*
 	 * Root Complex Requester ID (which is 0:00.0)
 	 */
@@ -1340,6 +1351,7 @@ static void switchtec_ntb_init_shared(struct switchtec_ntb *sndev)
 {
 	int i;
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	memset(sndev->self_shared, 0, LUT_SIZE);
 	sndev->self_shared->magic = SWITCHTEC_NTB_MAGIC;
 	sndev->self_shared->partition_id = sndev->stdev->partition;
@@ -1367,6 +1379,7 @@ static int switchtec_ntb_init_shared_mw(struct switchtec_ntb *sndev)
 	int self_bar = sndev->direct_mw_to_bar[0];
 	int rc;
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	sndev->nr_rsvd_luts++;
 	sndev->self_shared = dma_zalloc_coherent(&sndev->stdev->pdev->dev,
 						 LUT_SIZE,
@@ -1404,6 +1417,7 @@ unalloc_and_exit:
 
 static void switchtec_ntb_deinit_shared_mw(struct switchtec_ntb *sndev)
 {
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	if (sndev->peer_shared)
 		pci_iounmap(sndev->stdev->pdev, sndev->peer_shared);
 
@@ -1418,6 +1432,7 @@ static irqreturn_t switchtec_ntb_doorbell_isr(int irq, void *dev)
 {
 	struct switchtec_ntb *sndev = dev;
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	dev_dbg(&sndev->stdev->dev, "doorbell\n");
 
 	ntb_db_event(&sndev->ntb, 0);
@@ -1430,6 +1445,7 @@ static irqreturn_t switchtec_ntb_message_isr(int irq, void *dev)
 	int i;
 	struct switchtec_ntb *sndev = dev;
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	for (i = 0; i < ARRAY_SIZE(sndev->mmio_self_dbmsg->imsg); i++) {
 		u64 msg = ioread64(&sndev->mmio_self_dbmsg->imsg[i]);
 
@@ -1455,6 +1471,7 @@ static int switchtec_ntb_init_db_msg_irq(struct switchtec_ntb *sndev)
 	int event_irq;
 	int idb_vecs = sizeof(sndev->mmio_self_dbmsg->idb_vec_map);
 
+	dev_dbg(&sndev->stdev->dev, "%s\n", __func__);
 	event_irq = ioread32(&sndev->stdev->mmio_part_cfg->vep_vector_number);
 
 	while (doorbell_irq == event_irq)
