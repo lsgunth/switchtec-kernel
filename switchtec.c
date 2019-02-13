@@ -1404,6 +1404,20 @@ static int switchtec_init_pci(struct switchtec_dev *stdev,
 	return 0;
 }
 
+static void switchtec_set_release(struct switchtec_dev *stdev)
+{
+	u32 fw_ver = ioread32(&stdev->mmio_sys_info->firmware_version);
+
+	if (fw_ver >= 0x3100000)
+		stdev->rel = SWITCHTEC_GEN4_FCA;
+	else if (fw_ver >= 0x2060000)
+		stdev->rel = SWITCHTEC_GEN3_PAX;
+	else if (fw_ver >= 0x10b0080)
+		stdev->rel = SWITCHTEC_GEN3_MR4;
+	else
+		stdev->rel = SWITCHTEC_GEN3_PRE_MR4;
+}
+
 static int switchtec_pci_probe(struct pci_dev *pdev,
 			       const struct pci_device_id *id)
 {
@@ -1422,6 +1436,8 @@ static int switchtec_pci_probe(struct pci_dev *pdev,
 	rc = switchtec_init_pci(stdev, pdev);
 	if (rc)
 		goto err_put;
+
+	switchtec_set_release(stdev);
 
 	rc = switchtec_init_isr(stdev);
 	if (rc) {
