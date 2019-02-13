@@ -1565,6 +1565,21 @@ static enum switchtec_rel get_release(struct switchtec_dev *stdev)
 	}
 }
 
+static enum switchtec_evlist_ver get_evlist_ver(struct switchtec_dev *stdev)
+{
+	switch (stdev->rel) {
+	case SWITCHTEC_REL_GEN3_PRE_MR4:
+		return SWITCHTEC_EVLIST_VER_GEN3_PRE_MR4;
+	case SWITCHTEC_REL_GEN3_MR4:
+		return SWITCHTEC_EVLIST_VER_GEN3_MR4;
+	case SWITCHTEC_REL_GEN3_PAX:
+		return SWITCHTEC_EVLIST_VER_GEN3_PAX;
+	case SWITCHTEC_REL_GEN4:
+	default:
+		return ioread8(&stdev->mmio_sys_info->gen4.evlist_ver);
+	}
+}
+
 static int switchtec_pci_probe(struct pci_dev *pdev,
 			       const struct pci_device_id *id)
 {
@@ -1585,6 +1600,7 @@ static int switchtec_pci_probe(struct pci_dev *pdev,
 		goto err_put;
 
 	stdev->rel = get_release(stdev);
+	stdev->evlist_ver = get_evlist_ver(stdev);
 
 	rc = switchtec_init_isr(stdev);
 	if (rc) {
