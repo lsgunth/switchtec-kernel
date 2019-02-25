@@ -155,11 +155,46 @@ struct sys_info_regs_gen3 {
 	u8 component_revision;
 } __packed;
 
+struct sys_info_regs_gen4 {
+	u16 gas_version;
+	u16 mrpc_version;
+	u32 reserved1[12];
+	u32 table_version_cfg;
+	u32 table_version_img;
+	u32 partition_id;
+	u16 bl2_running;
+	u16 cfg_running;
+	u16 img_running;
+	u16 reserved2;
+	u32 reserved3[43];
+	u32 vendor_seeprom_twi;
+	u32 vendor_table_revision;
+	u32 vendor_specific_info[2];
+	u16 p2p_vendor_id;
+	u16 p2p_device_id;
+	u8 p2p_revision_id;
+	u8 reserved4[3];
+	u32 p2p_class_id;
+	u16 subsystem_vendor_id;
+	u16 subsystem_id;
+	u32 p2p_serial_number[2];
+	u8 mac_addr[6];
+	u8 reserved5[2];
+	u32 reserved6[3];
+	char vendor_id[8];
+	char product_id[24];
+	char  product_revision[2];
+	u16 reserved7;
+} __packed;
+
 struct sys_info_regs {
 	u32 device_id;
 	u32 device_version;
 	u32 firmware_version;
-	struct sys_info_regs_gen3 gen3;
+	union {
+		struct sys_info_regs_gen3 gen3;
+		struct sys_info_regs_gen4 gen4;
+	};
 } __packed;
 
 struct flash_info_regs {
